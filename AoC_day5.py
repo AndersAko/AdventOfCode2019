@@ -1,68 +1,106 @@
-def execute(program, ip):
+
+program = list()
+output = list()
+opcode_length = {1: 4, 2: 4, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4, 99: 0}
+
+def get_args(modes, num) -> list:
+    args = list()
+    if num >= 1:
+        arg = program[ip + 1]
+        if (modes % 10) == 0:
+            arg = program[arg]
+        args.append(arg)
+
+    if num >= 2:
+        arg = program[ip + 2]
+        if (modes // 10 % 10) == 0:
+            arg = program[arg]
+        args.append(arg)
+
+    if num >= 3:
+        arg = program[ip + 3]
+        if (modes // 100 % 10) == 0:
+            arg = program[arg]
+            print("Surprise!!")
+        args.append(arg)
+    return args
+
+def execute(ip: int) -> int:
     opcode = program[ip]%100
+    modes = program[ip]//100 % 1000
+    new_ip = ip + opcode_length[opcode]
 
-    modes = program[ip]//100 % 100
-
-    arg1 = program[ip + 1]
-    if (modes // 1000 % 10) == 0:
-        arg1 = program[arg1]
-    arg2 = program[ip + 2]
-    if (modes // 10000 % 10) == 0:
-        arg2 = program[arg2]
-    arg3 = program[ip + 3]
-    if (modes // 100000 % 10) == 0:
-        arg3 = program[arg3]
+    print("Execute instruction(", ip, "):", program[ip], " " , end='')
+    if len(program)>=ip+2:
+        print (program[ip+1], " ", end ='')
+    if len(program)>=ip+3:
+        print (program[ip+2], " ", end = '')
+    if len(program)>=ip+4:
+        print (program[ip+3], " ", end = '')
+    print ("modes: ", modes)
 
 
-    if opcode == 1:
+    if opcode == 1:         # add
         #            print("1: adding", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
-        program[program[index + 3]] = program[program[index + 1]] + program[program[index + 2]]
+        args = get_args(modes, 2)
+        program[program[ip + 3]] = args[0] + args[1]
         #           print("=>", opcodes)
-    elif program[index] == 2:
+    elif opcode == 2:       # mul
         #           print("2: multiplying", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
-        program[program[index + 3]] = program[program[index + 1]] * program[program[index + 2]]
+        args = get_args(modes, 2)
+        program[program[ip + 3]] = args[0] * args[1]
         #           print("=>", opcodes)
+    elif opcode == 3:       # input
+        # read a "1" for now
+        program[program[ip + 1]] = 5
+    elif opcode == 4:       # output
+        args = get_args(modes, 1)
+        output.append(args[0])
+    elif opcode == 5:       # jump if true
+        args = get_args(modes, 2)
+        if args[0]!= 0:
+            new_ip = args[1]
+    elif opcode == 6:  # jump if false
+        args = get_args(modes, 2)
+        if args[0] == 0:
+            new_ip = args[1]
+    elif opcode == 7:  # less than
+        args = get_args(modes, 2)
+        program[program[ip + 3]] = 1 if args[0] < args[1] else 0
+    elif opcode == 8:  # equals
+        args = get_args(modes, 2)
+        program[program[ip + 3]] = 1 if args[0] == args[1] else 0
+    elif opcode == 99:
+        print("HALT")
+        new_ip = -1
     else:
-        print("Oops, found opcode", program[index], "at", index)
-        break
+        print("Oops, found opcode", program[ip], "at", ip)
 
-def execute2():
-
+    return new_ip
 
 def int_code(_program, noun, verb):
     program = list(_program)
     program[1] = noun
     program[2] = verb
-    index = 0
 
-    while program[index] != 99:
-        if program[index] == 1:
-            #            print("1: adding", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
-            program[program[index + 3]] = program[program[index + 1]] + program[program[index + 2]]
-            #           print("=>", opcodes)
-        elif program[index] == 2:
-            #           print("2: multiplying", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
-            program[program[index + 3]] = program[program[index + 1]] * program[program[index + 2]]
-            #           print("=>", opcodes)
-        else:
-            print("Oops, found opcode", program[index], "at", index)
-            break
-        index += 4
-    return program[0]
-
+    print(output)
 
 with open("input_day5.txt", "r") as input_file:
-    opcodes = list(map(int, input_file.readline().strip(" ").split(",")))
+    program = list(map(int, input_file.readline().strip(" ").split(",")))
+    # program = [3,9,8,9,10,9,4,9,99,-1,8 ]
+    # program = [3,9,7,9,10,9,4,9,99,-1,8 ]
+    # program = [3,3,1108,-1,8,3,4,3,99]
+    # program = [3,3,1107,-1,8,3,4,3,99]
+    # program = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+     #          999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99]
 
-print(int_code(opcodes, 12, 2))
-print("=>", opcodes)
-print(opcodes[0])
-
-
-for noun in range(0,99):
-    for verb in range(0,99):
-        if int_code(opcodes, noun, verb) == 19690720:
-            print("Noun: ", noun,"Verb:", verb, "=>", 100*noun+verb)
+    ip = 0
+    while True:
+        ip = execute(ip)
+        print (program)
+        if ip == -1:
             break;
+
+    print("Halted with output", output)
 
 

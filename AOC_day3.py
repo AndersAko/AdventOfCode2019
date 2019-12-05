@@ -21,6 +21,18 @@ def route_to_points(input):
             points.append((loc[0], loc[1], steps))
     return points
 
+def line(from_point, direction):
+    if direction[0] == "U":
+        loc = (loc[0], loc[1] + 1)
+    elif direction[0] == "D":
+        loc = (loc[0], loc[1] - 1)
+    elif direction[0] == "L":
+        loc = (loc[0] - 1, loc[1])
+    elif direction[0] == "R":
+        loc = (loc[0] + 1, loc[1])
+    else:
+        print("Parsing error for", direction)
+
 
 def min_manhattan(intersections):
     min_p = intersections[0]
@@ -40,7 +52,7 @@ def min_steps(intersections):
     return min_p
 
 
-with open("input_day3.txt", "r") as input_file:
+with open("input_AAA.txt", "r") as input_file:
     wire1 = input_file.readline()
     wire2 = input_file.readline()
 
@@ -57,6 +69,7 @@ print(route_to_points(wire1))
 print(wire2)
 print(route_to_points(wire2))
 
+print()
 
 p1 = route_to_points(wire1)
 p2 = route_to_points(wire2)
@@ -84,4 +97,3 @@ print("Intersections: ", intersections)
 print("Compare with ", list(set(route_to_points(wire1)).intersection(route_to_points(wire2))))
 
 print("Shortest steps: ", min_steps(intersections)[2])
-#    print(wire2)
