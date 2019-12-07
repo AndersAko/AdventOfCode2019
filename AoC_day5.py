@@ -3,6 +3,7 @@ program = list()
 output = list()
 opcode_length = {1: 4, 2: 4, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4, 99: 0}
 
+
 def get_args(modes, num) -> list:
     args = list()
     if num >= 1:
@@ -25,31 +26,18 @@ def get_args(modes, num) -> list:
         args.append(arg)
     return args
 
+
 def execute(ip: int) -> int:
     opcode = program[ip]%100
     modes = program[ip]//100 % 1000
     new_ip = ip + opcode_length[opcode]
 
-    print("Execute instruction(", ip, "):", program[ip], " " , end='')
-    if len(program)>=ip+2:
-        print (program[ip+1], " ", end ='')
-    if len(program)>=ip+3:
-        print (program[ip+2], " ", end = '')
-    if len(program)>=ip+4:
-        print (program[ip+3], " ", end = '')
-    print ("modes: ", modes)
-
-
     if opcode == 1:         # add
-        #            print("1: adding", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
         args = get_args(modes, 2)
         program[program[ip + 3]] = args[0] + args[1]
-        #           print("=>", opcodes)
     elif opcode == 2:       # mul
-        #           print("2: multiplying", opcodes[index + 1], opcodes[index + 2], "to", opcodes[index + 3])
         args = get_args(modes, 2)
         program[program[ip + 3]] = args[0] * args[1]
-        #           print("=>", opcodes)
     elif opcode == 3:       # input
         # read a "1" for now
         program[program[ip + 1]] = 5
@@ -78,12 +66,6 @@ def execute(ip: int) -> int:
 
     return new_ip
 
-def int_code(_program, noun, verb):
-    program = list(_program)
-    program[1] = noun
-    program[2] = verb
-
-    print(output)
 
 with open("input_day5.txt", "r") as input_file:
     program = list(map(int, input_file.readline().strip(" ").split(",")))
