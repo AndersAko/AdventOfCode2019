@@ -44,12 +44,12 @@ class Program:
         elif opcode == 3:  # input
             incoming = self.input.get()
             self.program[self.program[self.ip + 1]] = incoming
- #           print(f"{self.amp_id}: Read {incoming}")
+            #           print(f"{self.amp_id}: Read {incoming}")
         elif opcode == 4:  # output
             args = self.get_args(modes, 1)
             outgoing = args[0]
             self.output.put(args[0])
- #           print(f"{self.amp_id}: Put {args[0]}")
+            #           print(f"{self.amp_id}: Put {args[0]}")
         elif opcode == 5:  # jump if true
             args = self.get_args(modes, 2)
             if args[0] != 0:
@@ -80,44 +80,46 @@ class Program:
         return
 
 
-with open("input_day7.txt", "r") as input_file:
-    program_code = list(map(int, input_file.readline().strip(" ").split(",")))
-    program_code = [3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0]
-#    program_code = [3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0]
+if __name__ == '__main__':
+    with open("input_day7.txt", "r") as input_file:
+        program_code = list(map(int, input_file.readline().strip(" ").split(",")))
+    #    program_code = [3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0]
+    #    program_code = [3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0]
 
-    max_output = 0
-    for phase_code in permutations(range(5)):
-        threads = list()
-        for amp in range(5):
-            if amp == 0:
-                input_queue = Queue()
-                input_queue.put(phase_code[amp])
-                input_queue.put(0)
-            else:
-                input_queue = program.output
-                if not input_queue.empty():
-                    print(f"Amp: {amp}: queue contains {input_queue.qsize()} items before priming")
-                input_queue.put(phase_code[amp])
+        max_output = 0
+        for phase_code in permutations(range(5,10)):
+            threads = list()
+            programs = []
+            for amp in range(5):
+                if amp == 0:
+                    input_queue = None
+                else:
+                    input_queue = programs[amp-1].output
+                    input_queue.put(phase_code[amp])
 
-            program = Program(amp, program_code, input_queue)
-            if amp == 4:
-                output = program.output
+                program = Program(amp, program_code, input_queue)
+                programs.append(program)
+                if amp == 4:
+                    output = program.output
+                    programs[0].input = program.output
+                    programs[0].input.put(phase_code[0])
+                    programs[0].input.put(0)
 
-            t = threading.Thread(target=program.run)
-            threads.append(t)
+                t = threading.Thread(target=program.run)
+                threads.append(t)
 
-        for t in threads:
-            t.start()
+            for t in threads:
+                t.start()
 
-        # wait for finish
-        for t in threads:
-            t.join()
+            # wait for finish
+            for t in threads:
+                t.join()
 
-        thruster = output.get_nowait()
-        print(f"Phasecode: {phase_code} Amp: {amp} Output {thruster}")
+            thruster = output.get_nowait()
+            print(f"Phasecode: {phase_code} Amp: {amp} Output {thruster}")
 
-        if thruster > max_output:
-            max_output = thruster
-            best_phasecode = phase_code
+            if thruster > max_output:
+                max_output = thruster
+                best_phasecode = phase_code
 
-    print (f"Highest output {max_output} for {best_phasecode}")
+        print (f"Highest output {max_output} for {best_phasecode}")
