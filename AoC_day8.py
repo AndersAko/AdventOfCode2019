@@ -1,4 +1,5 @@
-import sys
+from tkinter import *
+import numpy
 
 def parse_layer(image:str):
     num_zeros = 0
@@ -26,6 +27,7 @@ with open("input_day8.txt", "r") as input_file:
     layers = len(image)//(width * height)
     print(f"Image of len {len(image)}, with {layers} layers")
 
+    final_image = numpy.zeros((height, width))
     for y in range(height):
         for x in range(width):
             pixel = ' '
@@ -39,7 +41,10 @@ with open("input_day8.txt", "r") as input_file:
                     elif image[ix] == '1':
                         pixel = 'X'
                     break
+            final_image[y][x] = 1 if pixel == 'X' else 0
             print (pixel, end = '')
         print("")
 
+    print ("Final image:")
+    print (final_image)
 
