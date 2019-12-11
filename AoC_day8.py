@@ -18,7 +18,6 @@ def parse_layer(image:str):
     return (num_zeros, num_ones*num_twos)
 
 
-
 with open("input_day8.txt", "r") as input_file:
     image = input_file.readline()
 #    image = "0222112222120000"
