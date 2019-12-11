@@ -39,7 +39,7 @@ with open("input_day8.txt", "r") as input_file:
                     if image[ix] == '0':
                         pixel = ' '
                     elif image[ix] == '1':
-                        pixel = 'X'
+                        pixel = '#'
                     break
             final_image[y][x] = 1 if pixel == 'X' else 0
             print (pixel, end = '')
