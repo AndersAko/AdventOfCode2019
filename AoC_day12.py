@@ -7,38 +7,42 @@ class Moon:
     def __repr__(self):
         return f'{self.pos} {self.vel}'
 
+    def coord_hash(self, coord):
+        yield self.pos[coord]
+        yield self.vel[coord]
+
     def energy(self):
-        return sum(map(abs, self.pos)) + sum(map(abs, self.vel))
+        return sum(map(abs, self.pos)) * sum(map(abs, self.vel))
 
 if __name__ == '__main__':
-    with open("input_day12-1.txt", "r") as input_file:
+    with open("input_day12-3.txt", "r") as input_file:
         moons = list(map(Moon, input_file.readlines()))
 
         print(moons)
+        states = [list(), list(), list()]
 
-        for step in range (1, 101):
+        for step in range (1, 4686774924):
             # Update for gravity
             for coord in range(3):
-                sorted_moons = sorted(moons, key=lambda m: m.pos[coord])
-                for moon_ix, moon in enumerate(sorted_moons):
-                    same_ix = 0
-                    while moon_ix-same_ix-1 > 0 and sorted_moons[moon_ix-same_ix-1].pos[coord] == moon.pos[coord]:
-                        same_ix += 1
-                    # print(f'Moon {moon_ix}: {moon} greater than {moon_ix-same_ix} other moons on coord {coord}')
-
-                    moon.vel[coord] -= moon_ix - same_ix
-
-                    same_ix = 0
-                    while moon_ix+same_ix+1 < len(sorted_moons) and sorted_moons[moon_ix+same_ix+1].pos[coord] == moon.pos[coord]:
-                        same_ix += 1
-                    # print(f'Moon {moon_ix}: {moon} less than {len(sorted_moons)-moon_ix-1-same_ix} other moons on coord {coord}')
-
-                    moon.vel[coord] += len(sorted_moons)-moon_ix-1-same_ix
+                #sorted_moons = sorted(moons, key=lambda m: m.pos[coord])
+                for moon in moons:
+                    moon.vel[coord] -= sum(1 for m in moons if m.pos[coord] < moon.pos[coord])
+                    moon.vel[coord] += sum(1 for m in moons if m.pos[coord] > moon.pos[coord])
 
             # Update for velocity
             for moon in moons:
                 for coord in range(3):
                     moon.pos[coord] += moon.vel[coord]
 
-            print('Step: ', step, 'Moons: ', moons)
-            print("Total energy", sum(map(lambda m: m.energy(), moons)))
+            for coord in range(3):
+                state = hash(tuple(m.coord_hash(coord) for m in moons))
+                if state in states:
+                    print ("----------     Found a repeat for coord {coord} at {step}   -------------")
+                states[coord].append(state)
+
+            if step %10000 == 0:
+                print('Step: ', step, 'Moons: ')
+                for m in moons:
+                    print (m)
+
+                print("Total energy", sum(map(lambda m: m.energy(), moons)))
