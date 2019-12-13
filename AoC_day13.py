@@ -2,6 +2,8 @@ import threading
 from collections import defaultdict
 from queue import Queue
 import queue
+from time import sleep
+
 from intcode import Program
 from os import system
 
@@ -26,27 +28,26 @@ def draw_board(board, x_size, y_size):
     print()
 
 if __name__ == '__main__':
-    with open("input_day13.txt", "r") as input_file:
+    with open("input_day13hack.txt", "r") as input_file:
         program_code = list(map(int, input_file.readline().strip(" ").split(",")))
 
     program_code[0] = 2
     breakout_input = Queue()
     breakout = Program(1, program_code, breakout_input)
+    # breakout.print()
     breakout_thread = threading.Thread(target=breakout.run)
 
     breakout_thread.start()
     board = dict()
     while breakout_thread.is_alive():
-        try:
+        while not breakout.output.empty():
             x = breakout.output.get(0.1)
             y = breakout.output.get()
             tile = breakout.output.get()
-            print (f'({x},{y}): {tile}')
-        except queue.Empty:
-            break
-        board[(x, y)] = tile
-        draw_board(board, 70, 30)
-
+#            print (f'({x},{y}): {tile}')
+            board[(x, y)] = tile
+#        draw_board(board, 70, 30)
+        breakout.input.put(0)
 
     # wait for finish
     breakout_thread.join()
@@ -56,14 +57,8 @@ if __name__ == '__main__':
         y = breakout.output.get()
         tile = breakout.output.get()
         board[(x, y)] = tile
-        draw_board(board, 70, 30)
+
+    draw_board(board, 70, 30)
         
-
-    num_blocks = 0
-    for tile in board:
-        print (tile)
-        if board[tile] == 2:
-            num_blocks+=1
-
-    alt_num = sum(1 for t in board if board[t] == 2 )
-    print (f"Total of {num_blocks} blocks on screen")
+    num = sum(1 for t in board if board[t] == 2 )
+    print (f"Total of {num} blocks on screen")
