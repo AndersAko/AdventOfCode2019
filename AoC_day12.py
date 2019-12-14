@@ -42,7 +42,6 @@ if __name__ == '__main__':
                     periods[coord] = step
                     break
 
-
                 if step %100000 == 0 or step <10:
                     print(f'--{step}: {one_dimension_moon_pos} {one_dimension_moon_vel}')
 
@@ -51,5 +50,4 @@ if __name__ == '__main__':
         print(periods, periods[0]*periods[1]*periods[2])
         period_xy = periods[0]*periods[1] // math.gcd(periods[0], periods[1])
         period_xyz = period_xy*periods[2] / math.gcd(period_xy, periods[2])
-
-        print (f'Combined period in xyz : {period_xyz}')
+        print(f'Combined period in xyz : {period_xyz}')

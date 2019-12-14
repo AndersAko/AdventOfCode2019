@@ -2,6 +2,7 @@ from queue import Queue
 from typing import List
 from collections import defaultdict, namedtuple
 
+
 Opcode = namedtuple('Opcode', 'name args length')
 
 
