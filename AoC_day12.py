@@ -1,3 +1,4 @@
+import math
 
 class Moon:
     def __init__(self, string):
@@ -46,5 +47,9 @@ if __name__ == '__main__':
                     print(f'--{step}: {one_dimension_moon_pos} {one_dimension_moon_vel}')
 
                 step += 1
-        print(periods, periods[0]*periods[1]*periods[2])
 
+        print(periods, periods[0]*periods[1]*periods[2])
+        period_xy = periods[0]*periods[1] // math.gcd(periods[0], periods[1])
+        period_xyz = period_xy*periods[2] / math.gcd(period_xy, periods[2])
+
+        print (f'Combined period in xyz : {period_xyz}')

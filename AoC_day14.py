@@ -68,12 +68,6 @@ if __name__ == '__main__':
     print(f' 100 fuel -> {state}\n   giving {-state.state["ORE"] / 100} ore per fuel')
 
     state = State(defaultdict(int))
-    state.state['FUEL'] = -10000
-    while not state.only_need_ore():
-        state = state.solve_problems()
-    print(f' 10000 fuel -> {state}\n   giving {-state.state["ORE"] / 10000} ore per fuel')
-
-    state = State(defaultdict(int))
     state.state['FUEL'] = -1000000
     while not state.only_need_ore():
         state = state.solve_problems()
