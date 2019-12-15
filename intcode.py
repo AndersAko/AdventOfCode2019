@@ -23,6 +23,13 @@ class Program:
         self.output = Queue()
         self.rel_mode_base = 0
 
+    def copy(self):
+        assert self.input.empty()
+        new_program = Program(self.amp_id, self.program.copy(), Queue())
+        new_program.ip = self.ip
+        new_program.rel_mode_base = self.rel_mode_base
+        return new_program
+
     def get_args(self, modes, num) -> list:
         args = list()
         if num >= 1:
@@ -132,6 +139,9 @@ class Program:
             self.execute()
         return
 
+    def step(self):
+        while self.ip != -1 and self.output.empty():
+            self.execute()
 
 if __name__ == '__main__':
     def get_queue(q):

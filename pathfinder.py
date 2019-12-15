@@ -20,14 +20,15 @@ class Pathfinder:
         else:
             self.cost_function = lambda x: 0
         self.success_criteria = success_criteria
+        self.visited = set()
 
     def put_item(self, item, cost):
         self.priority_queue.put(PrioritizedItem(priority=cost + self.cost_function(item), cost=cost, item=item))
 
     def find_path(self, starting_item):
-        visited = set()
+        self.visited = set()
         self.put_item(starting_item, 0)
-        visited.add(starting_item)
+        self.visited.add(starting_item)
 
         while not self.priority_queue.empty():
             next_item = self.priority_queue.get()
@@ -37,9 +38,9 @@ class Pathfinder:
 
             next_moves = self.possible_moves(next_item.item)
             for move in next_moves:
-                if not move[0] in visited:
+                if not move[0] in self.visited:
                     self.put_item(move[0], next_item.cost+move[1])
-                    visited.add(move[0])
+                    self.visited.add(move[0])
 
 
 # test code
