@@ -19,12 +19,18 @@ def go_dir(loc, dir):  # dir = index('^<v>')
                             loc.y if dir == 1 or dir == 3 else loc.y - 1 if dir == 0 else loc.y + 1)
     return new_location
 
-def send_input(program, cmds):
-    for ix, cmd in enumerate(cmds):
+
+def send_input(cmds):
+    print('Sending: ', cmds, 'length:', len(cmds))
+    for cmd in cmds:
         program.input.put(ord(cmd))
-        if ix < len(cmds)-1:
-            program.input.put(ord(','))
     program.input.put(10)
+
+def get_output():
+    while not program.output.empty():
+        print(chr(program.output.get()),  end='')
+
+
 
 if __name__ == '__main__':
     with open("input_day17.txt", "r") as input_file:
@@ -64,9 +70,6 @@ if __name__ == '__main__':
     print(f'Robot at {robot}, pointing {robot_dir}')
 
     # part 2
-    # Hand-calculated: L8R10L8R8 L12R8R8 L8R10L8R8 L8R6R6R10L8 L8R6R6R10L8 L8R10L8R8 L12R8R8 L8R6R6R10L8 L12R8R8 L12R8R8
-    #                  A: L8R10L8R8 B: L12R8R8 A C: L8R6R6R10L8 C A B C B B
-
     # Generate path
     path = []
     while True:
@@ -87,41 +90,30 @@ if __name__ == '__main__':
     print (f'Calculated path: {path}')
     print(f'AsString: {"".join(map(str,path))}')
 
-    substrings = dict()
-    for length_A in range(10,0,-1):
-        for start_ix in range(0, len(path)-length_A):
-            substring = str(path[start_ix:start_ix+length_A])
-            if substring in substrings:
-                substrings[substring] += 1
-            else:
-                substrings[substring] = 1
-        print(f'Common strings of len {length_A}:', sorted(enumerate, reverse = True))
-
     program_code[0] = 2
     program = intcode.Program(0, program_code)
     print ('Second run.')
-    print (program.print())
 
     robot_thread = threading.Thread(target=program.run)
     robot_thread.start()
 
-    sleep(0.1)
-    while not program.output.empty():
-        reading = program.output.get()
-        print (f'{reading} {chr(reading)} ', end = '')
-
-    send_input(program, 'ABACCABCBB')
-    send_input(program, 'L8R10L8R8')
-    send_input(program, 'L12R8R8')
-    send_input(program, 'L8R6R6R10L8')
-    send_input(program, 'n')
+    sleep(1)
+    # Hand-calculated: L8R10L8R8 L12R8R8 L8R10L8R8 L8R6R6R10L8 L8R6R6R10L8 L8R10L8R8 L12R8R8 L8R6R6R10L8 L12R8R8 L12R8R8
+    #                  A: L8R10L8R8 B: L12R8R8 A C: L8R6R6R10L8 C A B C B B
+    get_output()
+    send_input('A,B,A,C,C,A,B,C,B,B')
+    get_output()
+    send_input('L,8,R,10,L,8,R,8')
+    get_output()
+    send_input('L,12,R,8,R,8')
+    get_output()
+    send_input('L,8,R,6,R,6,R,10,L,8')
+    get_output()
+    send_input('n')
 
     robot_thread.join()
     print('Getting response')
-
     while not program.output.empty():
         reading = program.output.get()
-        print(f'{chr(reading)}', end='')
-#    space_dust = program.output.get()
- #   print (f'Space dust: {space_dust}')
+        print(f'{chr(reading)}{reading}',  end='')
 
