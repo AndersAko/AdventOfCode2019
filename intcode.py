@@ -13,7 +13,7 @@ class Program:
                5: Opcode('JMPNZ', 2, 3), 6: Opcode('JMPZ', 2, 3), 7: Opcode('LESS', 2, 4), 8: Opcode('EQUAL', 2, 4),
                9: Opcode('ADD_REL', 1, 2), 99: Opcode('HALT', 0, 0)}
 
-    def __init__(self, amp_id, _program: List[int], _input: Queue):
+    def __init__(self, amp_id, _program: List[int], _input: Queue = Queue()):
         self.amp_id = amp_id
         self.program = defaultdict(int)
         for i in range(len(_program)):
