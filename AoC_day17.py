@@ -21,14 +21,14 @@ if __name__ == '__main__':
     loc = Location(0, 0)
     while not program.output.empty():
         reading = program.output.get()
-        if reading == 10:
+        if reading == 10:               # LF
             loc = Location(0, loc.y+1)
-        elif reading == 46:
-            loc = Location(loc.x+1, loc.y)
-        elif reading == 35:
-            scaffolding[loc] = '#'
+        elif reading == 46:             # .
             loc = Location(loc.x+1, loc.y)
         else:
+            if reading in map(ord, '^<v>'):
+                robot = loc
+                robot_dir = list(map(ord, '^<v>')).index(reading)
             scaffolding[loc] = chr(reading)
             loc = Location(loc.x+1, loc.y)
 
@@ -44,7 +44,8 @@ if __name__ == '__main__':
 
         print()
 
-    print ('Sum of alignment numbers: ', alignment_numbers)
+    print('Sum of alignment numbers: ', alignment_numbers, ' path length:', len(scaffolding))
+    print(f'Robot at {robot}, pointing {robot_dir}')
 #    print (program.print())
 
 
