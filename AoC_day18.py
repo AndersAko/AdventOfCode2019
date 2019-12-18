@@ -8,6 +8,8 @@ class State:
     def __init__(self, loc, keys):
         self.loc = loc
         self.keys = keys
+        self.sortedkeys = str(sorted(keys))
+
 
     def possible_moves(self):            # dir = index('^<v>')
         moves = []
@@ -30,7 +32,7 @@ class State:
         return -len(self.keys)*50
 
     def __hash__(self):
-        return hash((self.loc, str(sorted(self.keys))))
+        return hash((self.loc, self.sortedkeys))
 
     def __eq__(self, other):
         return (self.loc, self.keys) == (other.loc, other.keys)
@@ -38,6 +40,47 @@ class State:
     def __repr__(self):
         return f'{self.loc} {self.keys}'
 
+class State2:
+    def __init__(self, locs, keys):
+        self.locs = locs
+        self.keys = keys
+        self.sortedkeys = str(sorted(keys))
+
+    def possible_moves(self):            # dir = index('^<v>')
+        moves = []
+        for loc_ix,loc in enumerate(self.locs):
+            for dir in range(4):
+                new_location = Location(loc.x if dir == 0 or dir == 2 else loc.x - 1 if dir == 1 else loc.x + 1,\
+                                        loc.y if dir == 1 or dir == 3 else loc.y - 1 if dir == 0 else loc.y + 1)
+                if maze[new_location] == '.' or maze[new_location] == '@' \
+                        or maze[new_location].islower() or maze[new_location].lower() in self.keys:
+                    keys = set(self.keys)
+                    reward = 0
+                    if maze[new_location].islower():
+                        if maze[new_location] in keys:
+                            print(f'Found a key that I already had: {maze[new_location]} at {(l.x,l.y) for l in self.locs}')
+                        keys.add(maze[new_location])
+                        reward = 1000
+                    new_locs = list(self.locs)
+                    new_locs[loc_ix] = new_location
+                    moves.append((State2(new_locs, keys), 1-reward))
+
+
+        # print(f'Possible moves from {self} = {moves}')
+        return moves
+
+    def all_keys(self):
+        return len(self.keys) == number_of_keys
+
+    def __hash__(self):
+        to_hash = tuple(sorted([(l.x,l.y) for l in self.locs]) + tuple(sorted(self.keys))
+        return hash_value
+
+    def __eq__(self, other):
+        return (self.locs, self.keys) == (other.locs, other.keys)
+
+    def __repr__(self):
+        return f'{self.locs} {self.keys}'
 
 if __name__ == '__main__':
     with open("input_day18.txt", "r") as input_file:
@@ -62,13 +105,13 @@ if __name__ == '__main__':
         print()
 
     print(starting_location)
-    finder = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
-    cProfile.run('finder.find_path(starting_location)')
+    #finder = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
+   # cProfile.run('finder.find_path(starting_location)')
     #    print("Route: ", finder.find_path(starting_location))
     # print("Visited: ", len(finder.visited))
 
     # part 2
-    '''
+
     sx = starting_location.loc.x
     sy = starting_location.loc.y
     maze[Location(sx-1, sy-1)] = '@'
@@ -81,4 +124,8 @@ if __name__ == '__main__':
     maze[Location(sx, sy+1)] = '#'
     maze[Location(sx+1, sy+1)] = '@'
     
-    '''
+    starting_locations = [Location(sx-1, sy-1), Location(sx+1, sy-1), Location(sx-1, sy+1), Location(sx+1, sy+1)]
+    print ('Starting locations part 2: ', starting_locations)
+    finder_part2 = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
+    result = finder_part2.find_path(State2(starting_locations, set()))
+    print (result)
