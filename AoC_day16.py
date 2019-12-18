@@ -20,6 +20,15 @@ def get_digit(input_pattern, length, digit_no, pattern_offset):      # Calculate
     digit = abs(digit)% 10
     return digit
 
+
+def FFT(x):
+    result = []
+    for digit in range(len(x)):
+        digit = numpy.dot(x, patterns[digit][:len(x)])
+        result.append(abs(digit) % 10)
+    return result
+
+
 def phase(input_list, length):
     output = []
     for out_digit in range(length):
@@ -35,37 +44,18 @@ def phase(input_list, length):
 #    print("Result: ", output)
     return output
 
-def compress_list(input_list):
-    result = list()
-    for ix, _ in enumerate(input_list):
-        if ix % 2 == 0:
-            result.append(input_list[ix] + input_list[ix + 1])
-    return result
-
-
-def phase_part2(input_list, length):
-    compressed_lists = [[0] + input_list]       # [0] = input_list, [1] = summed in pairs, [2] = summed in fours, etc
-    for out_digit in range (length):
-        pattern_start = out_digit + 1
-        pattern_len = out_digit + 1     # Length of the '1' or '-1' series. Interval between 1-start and -1-start = 2 pattern_len
-        pattern_period = pattern_len * 4
-        while pattern_len > 0:
-            longest_match = 
-
-
-        if pattern_len == 1:
-            digit = numpy.dot(compressed_lists[0],
-                              list(itertools.islice(itertools.cycle(pattern), 0, len(compressed_lists[0]) + 1)))
-        elif pattern_len == 2:
-            compressed_lists[1] = compress_list(compressed_lists[0])
-            digit = numpy.dot(compressed_lists[1],
-                              list(itertools.islice(itertools.cycle(pattern), 0, len(compressed_lists[1]) + 1)))
-
 
 def part1(input_list, length):
     for i in range(100):
         input_list = phase(input_list, length)
     return (input_list)
+
+
+def part1_FFT(x):
+    for i in range(100):
+        x = FFT(x)
+    return x
+
 
 if __name__ == '__main__':
     with open("input_day16.txt", "r") as input_file:
@@ -76,14 +66,30 @@ if __name__ == '__main__':
     print(offset, input_list)
     cProfile.run('part1(input_list, length)')
 
-    input_list = part1(input_list, length)
+    result = part1(input_list, length)
 
-    print(input_list)
-    print("Result part 1: ", ''.join(map(str, input_list[:8])))
+    print(result)
+    print("Result part 1: ", ''.join(map(str, result[:8])))
 
-    length = 10000
-    cProfile.run('phase(input_list, length)')
 
+    patterns = []
+    for i in range(length):
+        patterns.append ([])
+        for j in range(length):
+            patterns[i].append(pattern[ ((j + 1) // (i + 1)) % len_pattern ])
+
+    result = part1_FFT(input_list)
+    print(result)
+    print("Result part 1_FFT: ", ''.join(map(str, result[:8])))
+    print(FFT(input_list))
+
+    print('Odd and Even')
+    X_even = part1_FFT(input_list[::2])
+    X_odd = part1_FFT(input_list[1::2])
+    print(X_even)
+    print(X_odd)
+
+    '''
     input_list = phase(input_list, length)
     for i in range(1):
         input_list = phase(input_list, length)
@@ -91,3 +97,4 @@ if __name__ == '__main__':
 
     print(input_list)
     print(f"Final result at offset {offset} = {''.join(map(str, input_list[offset:offset+8]))}")
+    '''
