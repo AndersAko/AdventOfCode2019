@@ -72,6 +72,13 @@ if __name__ == '__main__':
     sx = starting_location.loc.x
     sy = starting_location.loc.y
     maze[Location(sx-1, sy-1)] = '@'
-    maze[Location(sx, sy-1)] = '@'
+    maze[Location(sx, sy-1)] = '#'
     maze[Location(sx+1, sy-1)] = '@'
+    maze[Location(sx-1, sy)] = '#'
+    maze[Location(sx, sy)] = '#'
+    maze[Location(sx+1, sy)] = '#'
+    maze[Location(sx-1, sy+1)] = '@'
+    maze[Location(sx, sy+1)] = '#'
+    maze[Location(sx+1, sy+1)] = '@'
+    
     '''
