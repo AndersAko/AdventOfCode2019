@@ -30,6 +30,10 @@ class Program:
         new_program.rel_mode_base = self.rel_mode_base
         return new_program
 
+    def reset(self):
+        self.ip = 0
+        self.rel_mode_base = 0
+
     def get_args(self, modes, num) -> list:
         args = list()
         if num >= 1:

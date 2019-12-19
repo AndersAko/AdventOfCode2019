@@ -58,23 +58,24 @@ class State2:
                     reward = 0
                     if maze[new_location].islower():
                         if maze[new_location] in keys:
-                            print(f'Found a key that I already had: {maze[new_location]} at {(l.x,l.y) for l in self.locs}')
+                            #print(f'Found a key that I already had: {maze[new_location]} at {list((l.x,l.y) for l in self.locs)}')
+                            break
                         keys.add(maze[new_location])
                         reward = 1000
                     new_locs = list(self.locs)
                     new_locs[loc_ix] = new_location
-                    moves.append((State2(new_locs, keys), 1-reward))
+                    moves.append((State2(new_locs, keys), 1))
 
 
-        # print(f'Possible moves from {self} = {moves}')
+        #print(f'Possible moves from {self} = {moves}')
         return moves
 
     def all_keys(self):
         return len(self.keys) == number_of_keys
 
     def __hash__(self):
-        to_hash = tuple(sorted([(l.x,l.y) for l in self.locs]) + tuple(sorted(self.keys))
-        return hash_value
+        to_hash = tuple(sorted([(l.x,l.y) for l in self.locs])) + tuple(sorted(self.keys))
+        return hash(to_hash)
 
     def __eq__(self, other):
         return (self.locs, self.keys) == (other.locs, other.keys)
@@ -105,10 +106,10 @@ if __name__ == '__main__':
         print()
 
     print(starting_location)
-    #finder = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
+    finder = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
    # cProfile.run('finder.find_path(starting_location)')
     #    print("Route: ", finder.find_path(starting_location))
-    # print("Visited: ", len(finder.visited))
+    print("Visited: ", len(finder.visited))
 
     # part 2
 
@@ -123,9 +124,16 @@ if __name__ == '__main__':
     maze[Location(sx-1, sy+1)] = '@'
     maze[Location(sx, sy+1)] = '#'
     maze[Location(sx+1, sy+1)] = '@'
-    
+
+    print('Maze:\n')
+    for row in range(size_y):
+        for col in range(size_x):
+            print(maze[(col, row)], end='')
+        print()
+
     starting_locations = [Location(sx-1, sy-1), Location(sx+1, sy-1), Location(sx-1, sy+1), Location(sx+1, sy+1)]
     print ('Starting locations part 2: ', starting_locations)
     finder_part2 = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
     result = finder_part2.find_path(State2(starting_locations, set()))
-    print (result)
+    print(result)
+    print(finder_part2.visited)
