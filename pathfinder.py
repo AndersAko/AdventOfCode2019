@@ -32,8 +32,6 @@ class Pathfinder:
 
         while not self.priority_queue.empty():
             next_item = self.priority_queue.get()
-            if len(self.visited)%100000 == 0:
-                print(f'Searching.... Visited {len(self.visited)} nodes, {self.priority_queue.qsize()} in queue. Next node with cost {next_item.cost} Keys: {len(next_item.item.keys)}')
 
             if self.success_criteria(next_item.item):
                 return next_item.item, next_item.cost
