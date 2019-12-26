@@ -1,7 +1,7 @@
 from queue import Queue
 from typing import List
 from collections import defaultdict, namedtuple
-
+from time import sleep
 
 Opcode = namedtuple('Opcode', 'name args length')
 
@@ -13,7 +13,7 @@ class Program:
                5: Opcode('JMPNZ', 2, 3), 6: Opcode('JMPZ', 2, 3), 7: Opcode('LESS', 2, 4), 8: Opcode('EQUAL', 2, 4),
                9: Opcode('ADD_REL', 1, 2), 99: Opcode('HALT', 0, 0)}
 
-    def __init__(self, amp_id, _program: List[int], _input: Queue = Queue()):
+    def __init__(self, amp_id, _program: List[int], _input: Queue = Queue(), special_mode_23=False):
         self.amp_id = amp_id
         self.program = defaultdict(int)
         for i in range(len(_program)):
@@ -22,6 +22,9 @@ class Program:
         self.ip = 0
         self.output = Queue()
         self.rel_mode_base = 0
+        self.special_mode_23 = special_mode_23
+        self.reading_second = True
+        self.idle = False
 
     def copy(self):
         assert self.input.empty()
@@ -68,6 +71,8 @@ class Program:
     def execute(self):
         opcode = self.program[self.ip] % 100
         modes = self.program[self.ip] // 100 % 1000
+        if opcode not in Program.opcodes:
+            print(f'{self.amp_id}: Invalid opcode at {self.ip}: {self.program[self.ip]}')
         new_ip = self.ip + Program.opcodes[opcode].length
 
         args = self.get_args(modes, Program.opcodes[opcode].args)
@@ -76,11 +81,20 @@ class Program:
         elif opcode == 2:  # mul
             self.write(3, modes, args[0] * args[1])
         elif opcode == 3:  # input
-            incoming = self.input.get()
-            #            print(f"Program: read {incoming}")
+            if self.special_mode_23:
+                if self.input.empty() and not self.reading_second:
+                    sleep(0.01)
+                    incoming = -1
+                    self.idle = True
+                else:
+                    incoming = self.input.get()
+                    self.reading_second = not self.reading_second
+                    self.idle = False
+            else:
+                incoming = self.input.get()
+            #print(f" {self.amp_id} program: read {incoming}")
             self.write(1, modes, incoming)
         elif opcode == 4:  # output
-            outgoing = args[0]
             self.output.put(args[0])
         elif opcode == 5:  # jump if true
             if args[0] != 0:
@@ -108,6 +122,8 @@ class Program:
             return f'#{arg}'
         elif mode % 10 == 2:
             return f'{arg}(REL)'
+        else:
+            return str(arg)
 
     def list_program(self):
         ip = 0
@@ -155,7 +171,7 @@ if __name__ == '__main__':
 
     program_code = [109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
     program = Program(1, program_code, Queue())
-    program.print()
+    #program.print()
     program.run()
     output = list(get_queue(program.output))
     print("Output:", output)
@@ -163,7 +179,7 @@ if __name__ == '__main__':
 
     program_code = [1102, 34915192, 34915192, 7, 4, 7, 99, 0]
     program = Program(2, program_code, Queue())
-    program.print()
+    #program.print()
     program.run()
     output = list(get_queue(program.output))
     print("Output:", output)
@@ -217,7 +233,7 @@ if __name__ == '__main__':
     input_queue = Queue()
     input_queue.put(1)
     program = Program(3, program_code, input_queue)
-    program.print()
+    #program.print()
     program.run()
     output = list(get_queue(program.output))
     print("Output:", output)
@@ -226,7 +242,7 @@ if __name__ == '__main__':
     input_queue = Queue()
     input_queue.put(2)
     program = Program(3, program_code, input_queue)
-    program.print()
+    #program.print()
     program.run()
     output = list(get_queue(program.output))
     print("Output:", output)
