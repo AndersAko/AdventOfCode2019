@@ -28,19 +28,20 @@ class Pathfinder:
     def find_path(self, starting_item):
         self.visited = set()
         self.put_item(starting_item, 0)
-        self.visited.add(starting_item)
+        #self.visited.add(starting_item)
 
         while not self.priority_queue.empty():
             next_item = self.priority_queue.get()
+            if next_item.item in self.visited:
+                continue
+            self.visited.add(next_item.item)
 
             if self.success_criteria(next_item.item):
                 return next_item.item, next_item.cost
 
             next_moves = self.possible_moves(next_item.item)
             for move in next_moves:
-                if not move[0] in self.visited:
-                    self.put_item(move[0], next_item.cost+move[1])
-                    self.visited.add(move[0])
+                self.put_item(move[0], next_item.cost+move[1])
 
 
 # test code

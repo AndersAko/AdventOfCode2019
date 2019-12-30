@@ -1,8 +1,14 @@
+import copy
+import queue
+from typing import List, Set
+
 import pathfinder
 from collections import namedtuple
 import cProfile
 
 Location = namedtuple('Location', 'x y')
+Location.__repr__ = lambda l: f'L:({l.x},{l.y})'
+Path = namedtuple('Path', 'loc d len')
 
 
 class State:
@@ -42,44 +48,50 @@ class State:
         return f'{self.loc} {self.keys}'
 
 
-Path = namedtuple('Path', 'loc d len')
-
-
 class State2:
-    def __init__(self, locs, keys):
+    def __init__(self, locs: List[Location], keys: Set[str] = set(), total_length: int = 0):
         self.locs = locs
         self.keys = keys
-        self.sortedkeys = str(sorted(keys))
+        self.length = total_length
+        self.route = []
 
-    # follow the path from loc, avoiding avoid_dir, until a key, blocked door or intersection is found
-    def follow_path(self, loc: Location, avoid_dir=-1, length = 0) -> Location:
-        neighbours = [Path(Location(loc.x if d == 0 or d == 2 else loc.x - 1 if d == 1 else loc.x + 1,
-                                    loc.y if d == 1 or d == 3 else loc.y - 1 if d == 0 else loc.y + 1), d, length+1)
-                      for d in range(4) if d != avoid_dir]
-        neighbours = [l for l in neighbours if maze[l.loc] != '#'
-                      and (not maze[l.loc].isupper() or maze[l.loc].lower() in self.keys)]
-        if len(neighbours) != 1 or maze[neighbours[0].loc].islower() and maze[neighbours[0].loc] not in self.keys:
-            # Multiple paths possible or key found: stop here
-            return neighbours
-        return self.follow_path(neighbours[0].loc, (neighbours[0].d + 2) % 4, neighbours[0].len)
+    # follow all paths from loc, avoiding avoid_dir, until a new key is found, branching when needed
+    def follow_path(self, path: Path) -> List[Path]:
+        possible_stops = []
+        visited: Set[Location] = set()
+        search_nodes = queue.Queue()
+        search_nodes.put(path)
+
+        while not search_nodes.empty():
+            node = search_nodes.get()
+            neighbours = [Path(Location(node.loc.x if d == 0 or d == 2 else node.loc.x - 1 if d == 1 else node.loc.x + 1,
+                                        node.loc.y if d == 1 or d == 3 else node.loc.y - 1 if d == 0 else node.loc.y + 1),
+                               d, node.len+1) for d in range(4)]
+            neighbours = [l for l in neighbours if not (maze[l.loc] == '#' or l.loc in visited or
+                          (maze[l.loc].isupper() and maze[l.loc].lower() not in self.keys))]
+            for neighbour in neighbours:
+                visited.add(neighbour.loc)
+                if maze[neighbour.loc].islower() and maze[neighbour.loc] not in self.keys:
+                    possible_stops.append(neighbour)
+                else:
+                    search_nodes.put(neighbour)
+        return possible_stops
 
     def possible_moves(self):  # dir = index('^<v>')
         moves = []
         for loc_ix, loc in enumerate(self.locs):
             #print(f'Follow path from {loc}', end='')
-            new_locations = self.follow_path(loc)
+            new_locations = self.follow_path(Path(loc, None, 0))
             #print(f' -> {new_locations}')
             for new_location in new_locations:
-                assert (maze[new_location.loc] == '.' or maze[new_location.loc] == '@'
-                        or maze[new_location.loc].islower() or maze[new_location.loc].lower() in self.keys)
-                keys = set(self.keys)
-                if maze[new_location.loc].islower():
-                    if maze[new_location.loc] in keys:
-                        print(f'Found a key that I already had: {maze[new_location.loc]} at {list((l.x,l.y) for l in self.locs)}')
-                    keys.add(maze[new_location.loc])
-                new_locs = list(self.locs)
-                new_locs[loc_ix] = new_location.loc
-                moves.append((State2(new_locs, keys), new_location.len))
+                # possible locations should include: new keys
+                assert maze[new_location.loc].islower() and maze[new_location.loc] not in self.keys
+                possible_move = copy.deepcopy(self)
+                possible_move.route.append(f'{loc_ix}:{possible_move.locs[loc_ix]} -> {new_location.loc}')
+                possible_move.keys.add(maze[new_location.loc])
+                possible_move.locs[loc_ix] = new_location.loc
+                possible_move.length += new_location.len
+                moves.append((possible_move, new_location.len))
 
         #print(f'Possible moves from {self} = {moves}')
         return moves
@@ -95,41 +107,47 @@ class State2:
         return (self.locs, self.keys) == (other.locs, other.keys)
 
     def __repr__(self):
-        return f'{self.locs} {self.keys}'
+        return f'{self.locs} {self.keys} ({self.route})'
 
 
 if __name__ == '__main__':
     with open("input_day18.txt", "r") as input_file:
         maze = dict()
-        number_of_keys = 0
         row = 0
         for line in input_file.readlines():
-            for col in range(len(line)):
+            for col in range(len(line.strip('\n'))):
                 maze[Location(col, row)] = line[col]
-                if line[col] == '@':
-                    starting_location = State(Location(col, row), set())
-                if line[col].islower():
-                    number_of_keys += 1
-                size_x = col + 1
             row += 1
-        size_y = row
+
+    size_x = max(loc.x for loc in maze) + 1
+    size_y = max(loc.y for loc in maze) + 1
+    starting_locations = [loc for loc in maze if maze[loc] == '@']
+    number_of_keys = sum(1 for x in maze if maze[x].islower())
 
     print('Maze:\n')
     for row in range(size_y):
         for col in range(size_x):
             print(maze[(col, row)], end='')
         print()
+    print('Starting location: ', starting_locations)
+    print(f'Size = {size_x, size_y}')
+    print(f'Number of keys: {number_of_keys}')
 
-    print(starting_location)
     finder = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
     # cProfile.run('finder.find_path(starting_location)')
-    print("Route: ", finder.find_path(starting_location))
+    print("Route version 1: ", finder.find_path(State(starting_locations[0], set())))
     print("Visited: ", len(finder.visited))
+
+    route2 = finder.find_path(State2(starting_locations))
+    print("Route version 2: ", route2[1], route2)
+    print("Visited: ", len(finder.visited))
+    print("Path: ", route2[0].route)
+
 
     # part 2
 
-    sx = starting_location.loc.x
-    sy = starting_location.loc.y
+    sx = starting_locations[0].x
+    sy = starting_locations[0].y
     maze[Location(sx - 1, sy - 1)] = '@'
     maze[Location(sx, sy - 1)] = '#'
     maze[Location(sx + 1, sy - 1)] = '@'
@@ -141,15 +159,25 @@ if __name__ == '__main__':
     maze[Location(sx + 1, sy + 1)] = '@'
 
     print('Maze:\n')
+    key_sector = dict()
     for row in range(size_y):
         for col in range(size_x):
             print(maze[(col, row)], end='')
+            if maze[(col, row)].islower():
+                sector = (2 * col // size_x, 2 * row // size_y)
+                if sector not in key_sector:
+                    key_sector[sector] = set()
+                key_sector[sector].add(maze[(col, row)])
         print()
 
-    starting_locations = [Location(sx - 1, sy - 1), Location(sx + 1, sy - 1), Location(sx - 1, sy + 1),
-                          Location(sx + 1, sy + 1)]
+    print('Keys per sector')
+    for sector in key_sector:
+        print(f'Sector: {sector}: {",".join(key_sector[sector])}')
+
+    starting_locations = [loc for loc in maze if maze[loc] == '@']
     print('Starting locations part 2: ', starting_locations)
     finder_part2 = pathfinder.Pathfinder(lambda x: x.possible_moves(), lambda y: y.all_keys())
-    result = finder_part2.find_path(State2(starting_locations, set()))
-    print(f'Result of search part 2: {result}')
-    print('Visted:', len(finder_part2.visited))
+    result = finder_part2.find_path(State2(starting_locations))
+    print(f'Result of search part 2: {result[1]}   {result}')
+    print('Visited:', len(finder_part2.visited))
+    print("Path: ", result[0].route)
