@@ -64,37 +64,29 @@ if __name__ == '__main__':
     length = len(input_list)
     offset = int(''.join(map(str, input_list[:7])))
     print(offset, input_list)
-    cProfile.run('part1(input_list, length)')
+    #cProfile.run('part1(input_list, length)')
 
     result = part1(input_list, length)
 
     print(result)
     print("Result part 1: ", ''.join(map(str, result[:8])))
 
+    # Verify that offset is greater than half input length: for these, the digit = sum(input[offset:])%10
+    # for phase in range(100): calculate digits from offset to end
 
-    patterns = []
-    for i in range(length):
-        patterns.append ([])
-        for j in range(length):
-            patterns[i].append(pattern[ ((j + 1) // (i + 1)) % len_pattern ])
+    print(f'Offset: {offset} into {length * 10000} => {offset % length}...{length} + {(length*10000 - offset)//length} times more')
+    assert(offset > length * 10000 / 2)
+    assert(offset < length * 10000)
 
-    result = part1_FFT(input_list)
-    print(result)
-    print("Result part 1_FFT: ", ''.join(map(str, result[:8])))
-    print(FFT(input_list))
+    fft_data = input_list[offset % length:]
+    for additional in range((length*10000 - offset)//length):
+        fft_data.extend(input_list)
 
-    print('Odd and Even')
-    X_even = part1_FFT(input_list[::2])
-    X_odd = part1_FFT(input_list[1::2])
-    print(X_even)
-    print(X_odd)
+    print(f'Using input data of len {len(fft_data)} representing the digits from offset and up.')
+    for phase in range(100):
+        cumulative_sum = 0
+        for digit in reversed(range(len(fft_data))):
+            cumulative_sum = (cumulative_sum + fft_data[digit]) % 10
+            fft_data[digit] = cumulative_sum
 
-    '''
-    input_list = phase(input_list, length)
-    for i in range(1):
-        input_list = phase(input_list, length)
-        print(i, input_list)
-
-    print(input_list)
-    print(f"Final result at offset {offset} = {''.join(map(str, input_list[offset:offset+8]))}")
-    '''
+    print(f"Final result at offset {offset} = {''.join(map(str, fft_data[:8]))}")
