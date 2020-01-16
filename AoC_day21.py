@@ -32,8 +32,16 @@ if __name__ == '__main__':
 
     sleep(1)
     get_output()
+    send_input('OR E J')
     send_input('OR H J')
-    send_input('AND H J')
+    send_input('NOT C T')
+    send_input('AND T J')
+
+    send_input('NOT E T')
+    send_input('AND H T')
+
+    send_input('OR T J')
+
     send_input('AND D J')
     send_input('NOT A T')
     send_input('OR T J')

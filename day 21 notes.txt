@@ -1,0 +1,42 @@
+....@............
+#####..##..#.####
+     ABCDEFGHIJ
+     ..._..._	
+-----------------------------
+
+....@............
+#####.###########
+	send_input('NOT A J')
+
+........@........
+#####.#..########
+  j...j
+  
+	send_input('OR H J')
+    send_input('AND H J')
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+	
+............@....
+#####..##..#.####
+   j...j...j...
+   
+   	send_input('OR D J')
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+
+........@........
+#####.#..########
+x...j...
+
+	send_input('OR H J')
+    send_input('OR E J')
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+
+............@....
+#####..##..#.####
+X...x...x...
