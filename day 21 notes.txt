@@ -40,3 +40,84 @@ x...j...
 ............@....
 #####..##..#.####
 X...x...x...
+
+
+---------------
+....@............
+#####.#.#..#####
+
+
+
+
+
+Jump if (NOT A | (D and NOT C and (E or H)) 
+    send_input('OR E J')
+    send_input('OR H J')
+    send_input('NOT C T')
+    send_input('AND T J')
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+
+
+......@..........
+#####.##.##...###
+       ABCDEFGHIJ
+
+Jump if (NOT A or (D and ((NOT C and (E or H)) or NOT E))) 
+
+    send_input('OR E J')
+    send_input('OR H J')
+    send_input('NOT C T')
+    send_input('AND T J')
+
+    send_input('NOT E T')
+	send_input('OR T J')
+
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+
+
+@................
+#####.#..########
+x...j...X
+
+......@..........
+#####.##.##...###
+       ABCDEFGHIJ
+      j...j
+	  
+Jump if NOT A or (D and ((NOT C and (E or H)) or (NOT E and H))) 
+
+    send_input('OR E J')
+    send_input('OR H J')
+    send_input('NOT C T')
+    send_input('AND T J')
+
+    send_input('NOT E T')
+	send_input('AND H T')
+
+	send_input('OR T J')
+
+    send_input('AND D J')
+    send_input('NOT A T')
+    send_input('OR T J')
+	
+@................
+#####..##..#.####
+
+Jump if D and (NOT A or (NOT C and (E or H)) or NOT B)
+    send_input('OR E J')
+    send_input('OR H J')
+    send_input('NOT C T')
+    send_input('AND T J')
+
+    send_input('NOT B T')
+	send_input('OR T J')
+
+    send_input('NOT A T')
+    send_input('OR T J')
+
+    send_input('AND D J')
+
